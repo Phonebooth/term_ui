@@ -167,6 +167,42 @@ defmodule TermUI.Renderer.Cell do
   end
 
   @doc """
+  Returns a canvas cell — a space with black background and default foreground.
+
+  Used to initialize and clear buffers so that any cell not written by the
+  render tree appears as black rather than the terminal's default background.
+
+  An optional keyword list can override colors and attributes:
+
+  ## Options
+
+    * `:fg` - foreground color (default: `:default`)
+    * `:bg` - background color (default: `:black`)
+    * `:attrs` - list of style attributes (default: `[]`)
+
+  ## Examples
+
+      iex> Cell.canvas()
+      %Cell{char: " ", fg: :default, bg: :black, attrs: MapSet.new()}
+
+      iex> Cell.canvas(bg: :blue, fg: :white, attrs: [:bold])
+      %Cell{char: " ", fg: :white, bg: :blue, attrs: MapSet.new([:bold])}
+  """
+  @dialyzer {:nowarn_function, canvas: 0, canvas: 1}
+  @spec canvas(keyword()) :: t()
+  def canvas(opts \\ []) do
+    fg = Keyword.get(opts, :fg, :default)
+    bg = Keyword.get(opts, :bg, :black)
+    attrs = Keyword.get(opts, :attrs, [])
+
+    %__MODULE__{
+      fg: validate_color!(fg),
+      bg: validate_color!(bg),
+      attrs: attrs |> Enum.map(&validate_attribute!/1) |> MapSet.new()
+    }
+  end
+
+  @doc """
   Compares two cells for equality.
 
   Returns `true` if both cells have the same character, colors, and attributes.

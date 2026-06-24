@@ -124,10 +124,10 @@ defmodule TermUI.Renderer.Buffer do
     if in_bounds?(buffer, row, col) do
       case :ets.lookup(buffer.table, {row, col}) do
         [{{^row, ^col}, cell}] -> cell
-        [] -> Cell.empty()
+        [] -> Cell.canvas()
       end
     else
-      Cell.empty()
+      Cell.canvas()
     end
   end
 
@@ -189,13 +189,13 @@ defmodule TermUI.Renderer.Buffer do
   @spec clear_region(t(), pos_integer(), pos_integer(), pos_integer(), pos_integer()) :: :ok
   def clear_region(%__MODULE__{} = buffer, start_row, start_col, width, height)
       when is_integer(width) and width > 0 and is_integer(height) and height > 0 do
-    empty = Cell.empty()
+    canvas = Cell.canvas()
 
     entries =
       for row <- start_row..(start_row + height - 1),
           col <- start_col..(start_col + width - 1),
           in_bounds?(buffer, row, col) do
-        {{row, col}, empty}
+        {{row, col}, canvas}
       end
 
     :ets.insert(buffer.table, entries)
@@ -367,7 +367,7 @@ defmodule TermUI.Renderer.Buffer do
       |> Enum.map(fn {{_row, _col}, cell} -> cell end)
     else
       # Return empty cells for out-of-bounds row
-      List.duplicate(Cell.empty(), buffer.cols)
+      List.duplicate(Cell.canvas(), buffer.cols)
     end
   end
 
@@ -419,11 +419,11 @@ defmodule TermUI.Renderer.Buffer do
   # Private helpers
 
   defp initialize_cells(%__MODULE__{} = buffer) do
-    empty = Cell.empty()
+    canvas = Cell.canvas()
 
     entries =
       for row <- 1..buffer.rows, col <- 1..buffer.cols do
-        {{row, col}, empty}
+        {{row, col}, canvas}
       end
 
     :ets.insert(buffer.table, entries)

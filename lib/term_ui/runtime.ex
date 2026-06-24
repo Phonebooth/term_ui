@@ -536,6 +536,12 @@ defmodule TermUI.Runtime do
 
     # Configure terminal for TUI mode
     :ok = Terminal.enter_alternate_screen()
+    # Pre-fill the alternate screen with black background. The diff renderer only
+    # emits cells that changed vs the previous buffer frame — it never writes to
+    # cells that stay at Cell.empty() (bg: :default). Without this, those cells
+    # keep the terminal's default background (white). Writing \e[40m\e[2J fills
+    # the entire screen with black-bg spaces so unwritten cells appear dark.
+    TerminalOutput.write_to_tty("\e[40m\e[2J\e[H")
     :ok = Terminal.hide_cursor()
     :ok = Terminal.enable_mouse_tracking(:all)
 

@@ -182,7 +182,7 @@ defmodule TermUI.Renderer.Diff do
     # Get actual cells from current buffer for the gap positions
     gap_cells =
       for col <- (prev.end_col + 1)..(span.start_col - 1) do
-        Map.get(current_cells_map, col, Cell.empty())
+        Map.get(current_cells_map, col, Cell.canvas())
       end
 
     %{
@@ -302,6 +302,14 @@ defmodule TermUI.Renderer.Diff do
     else
       {[{:style, style} | acc], style}
     end
+  end
+
+  # :reset emits \e[0m which returns the terminal to its defaults, so any
+  # previously-seen style is no longer in effect — reset tracking to nil so
+  # the next style is always emitted in full rather than compared against a
+  # stale pre-reset value.
+  defp filter_redundant_style(:reset, {acc, _last_style}) do
+    {[:reset | acc], nil}
   end
 
   defp filter_redundant_style(op, {acc, last_style}) do
